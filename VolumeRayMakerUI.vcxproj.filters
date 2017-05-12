@@ -1,0 +1,258 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>moc;h;cpp</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Debug">
+      <UniqueIdentifier>{a8865d29-c192-46ff-b905-cc72efcddd1b}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{f142c977-3b30-4c33-9a23-21c3abc9caa4}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="algorithm">
+      <UniqueIdentifier>{5b7c31cd-ed29-4cd7-9ab9-9ebd34fa4ade}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\camera">
+      <UniqueIdentifier>{0a12bfe3-f997-4fc9-a1f6-dab6bdd8291d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\freeImage">
+      <UniqueIdentifier>{0ffff39a-8168-4d88-81b8-67f59f30d9b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\kdtree">
+      <UniqueIdentifier>{661a7f35-e223-4d80-9b26-d14c96a8701b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\ldpmat">
+      <UniqueIdentifier>{ac7cd7ff-5653-40b9-a52f-3ddc39b3799b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\mpu">
+      <UniqueIdentifier>{e7b8f817-800f-4d20-b021-0021ef2b9471}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\openvdbwrapper">
+      <UniqueIdentifier>{a51f780b-1029-4f6a-8530-19f3dffd0042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\renderable">
+      <UniqueIdentifier>{11d490d1-4f10-4cac-8e97-9fb3d0bd6373}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="volumemakerui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_volumemakerui.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_volumemakerui.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_volumemakerui.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\global_data_holder.cpp">
+      <Filter>algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\util.cpp">
+      <Filter>algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\camera\Camera.cpp">
+      <Filter>algorithm\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\FreeImage\CFreeImage.cpp">
+      <Filter>algorithm\freeImage</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\kdtree\AABB.cpp">
+      <Filter>algorithm\kdtree</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\kdtree\KdTree.cpp">
+      <Filter>algorithm\kdtree</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\kdtree\Primitive.cpp">
+      <Filter>algorithm\kdtree</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\mpu\VolumeData.cpp">
+      <Filter>algorithm\mpu</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\mpu\Convolution_Helper.cpp">
+      <Filter>algorithm\mpu</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\mpu\ConvolutionPyramid.cpp">
+      <Filter>algorithm\mpu</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\Renderable\AbstractMesh.cpp">
+      <Filter>algorithm\renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\Renderable\bmesh.cpp">
+      <Filter>algorithm\renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\Renderable\BoneMesh.cpp">
+      <Filter>algorithm\renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\Renderable\GLNode.cpp">
+      <Filter>algorithm\renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\Renderable\ObjMesh.cpp">
+      <Filter>algorithm\renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\openvdbwrapper\OpenVDBWrapper.cpp">
+      <Filter>algorithm\openvdbwrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="MpuViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_MpuViewer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_MpuViewer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="global_param.cpp">
+      <Filter>algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\RigidEstimation.cpp">
+      <Filter>algorithm</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="volumemakerui.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="volumemakerui.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MpuViewer.h">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="volumemakerui.h">
+      <Filter>Source Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GeneratedFiles\ui_volumemakerui.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\global_data_holder.h">
+      <Filter>algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\global_param.h">
+      <Filter>algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\LMSolver.h">
+      <Filter>algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\util.h">
+      <Filter>algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\camera\Camera.h">
+      <Filter>algorithm\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\camera\fmath.h">
+      <Filter>algorithm\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\FreeImage\CFreeImage.h">
+      <Filter>algorithm\freeImage</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\FreeImage\FreeImage.h">
+      <Filter>algorithm\freeImage</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\AABB.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\BSphere.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\common.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\KdTree.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\nanoflann.hpp">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\PointTree.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\Primitive.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\kdtree\Ray.h">
+      <Filter>algorithm\kdtree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\ldpMat\half.hpp">
+      <Filter>algorithm\ldpmat</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\ldpMat\ldp_basic_mat.h">
+      <Filter>algorithm\ldpmat</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\ldpMat\ldp_basic_vec.h">
+      <Filter>algorithm\ldpmat</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\ldpMat\ldpdef.h">
+      <Filter>algorithm\ldpmat</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\ldpMat\Quaternion.h">
+      <Filter>algorithm\ldpmat</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\mpu\VolumeData.h">
+      <Filter>algorithm\mpu</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\mpu\Convolution_Helper.h">
+      <Filter>algorithm\mpu</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\mpu\ConvolutionPyramid.h">
+      <Filter>algorithm\mpu</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\AbstractMesh.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\bmesh.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\bmesh_private.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\BoneMesh.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\Error.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\GLNode.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\ObjMesh.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\Renderable\Renderable.h">
+      <Filter>algorithm\renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\openvdbwrapper\OpenVDBWrapper.h">
+      <Filter>algorithm\openvdbwrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\RigidEstimation.h">
+      <Filter>algorithm</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
