@@ -47,11 +47,11 @@
     <Filter Include="algorithm\mpu">
       <UniqueIdentifier>{e7b8f817-800f-4d20-b021-0021ef2b9471}</UniqueIdentifier>
     </Filter>
-    <Filter Include="algorithm\openvdbwrapper">
-      <UniqueIdentifier>{a51f780b-1029-4f6a-8530-19f3dffd0042}</UniqueIdentifier>
-    </Filter>
     <Filter Include="algorithm\renderable">
       <UniqueIdentifier>{11d490d1-4f10-4cac-8e97-9fb3d0bd6373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\Embree">
+      <UniqueIdentifier>{1ae810d0-b23d-41ca-ba86-b736662be5c8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -115,9 +115,6 @@
     <ClCompile Include="algorithm\Renderable\ObjMesh.cpp">
       <Filter>algorithm\renderable</Filter>
     </ClCompile>
-    <ClCompile Include="algorithm\openvdbwrapper\OpenVDBWrapper.cpp">
-      <Filter>algorithm\openvdbwrapper</Filter>
-    </ClCompile>
     <ClCompile Include="MpuViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -132,6 +129,9 @@
     </ClCompile>
     <ClCompile Include="algorithm\RigidEstimation.cpp">
       <Filter>algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\embree\EmbreeWrapper.cpp">
+      <Filter>algorithm\Embree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -248,11 +248,11 @@
     <ClInclude Include="algorithm\Renderable\Renderable.h">
       <Filter>algorithm\renderable</Filter>
     </ClInclude>
-    <ClInclude Include="algorithm\openvdbwrapper\OpenVDBWrapper.h">
-      <Filter>algorithm\openvdbwrapper</Filter>
-    </ClInclude>
     <ClInclude Include="algorithm\RigidEstimation.h">
       <Filter>algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\embree\EmbreeWrapper.h">
+      <Filter>algorithm\Embree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

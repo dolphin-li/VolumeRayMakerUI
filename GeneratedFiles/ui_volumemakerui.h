@@ -56,7 +56,6 @@ public:
     QSlider *hsZclip_e;
     QPushButton *pbVolume2Mesh;
     QPushButton *pbMesh2Volume;
-    QPushButton *pbBinarizeVolume;
     QGroupBox *groupBox_2;
     QSpinBox *sbViewId;
     QLabel *label;
@@ -86,7 +85,7 @@ public:
         VolumeMakerUIClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(VolumeMakerUIClass);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1087, 21));
+        menuBar->setGeometry(QRect(0, 0, 1087, 23));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QStringLiteral("menuFile"));
         VolumeMakerUIClass->setMenuBar(menuBar);
@@ -149,9 +148,6 @@ public:
         pbMesh2Volume = new QPushButton(dockWidgetContents);
         pbMesh2Volume->setObjectName(QStringLiteral("pbMesh2Volume"));
         pbMesh2Volume->setGeometry(QRect(100, 310, 75, 23));
-        pbBinarizeVolume = new QPushButton(dockWidgetContents);
-        pbBinarizeVolume->setObjectName(QStringLiteral("pbBinarizeVolume"));
-        pbBinarizeVolume->setGeometry(QRect(10, 350, 75, 23));
         groupBox_2 = new QGroupBox(dockWidgetContents);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
         groupBox_2->setGeometry(QRect(10, 390, 171, 121));
@@ -194,7 +190,6 @@ public:
         groupBox->setTitle(QApplication::translate("VolumeMakerUIClass", "Volume", 0));
         pbVolume2Mesh->setText(QApplication::translate("VolumeMakerUIClass", "Volume2Mesh", 0));
         pbMesh2Volume->setText(QApplication::translate("VolumeMakerUIClass", "Mesh2Volume", 0));
-        pbBinarizeVolume->setText(QApplication::translate("VolumeMakerUIClass", "BinarizeVolume", 0));
         groupBox_2->setTitle(QApplication::translate("VolumeMakerUIClass", "ViewSamples", 0));
         label->setText(QApplication::translate("VolumeMakerUIClass", "viewId", 0));
         pbGenViews->setText(QApplication::translate("VolumeMakerUIClass", "GenViews", 0));

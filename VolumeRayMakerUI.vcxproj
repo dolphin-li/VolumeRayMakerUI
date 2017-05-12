@@ -103,9 +103,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName)d.exe</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)\algorithm\hdf5\lib\x64;D:\boost_1_57_0\lib64-msvc-12.0;$(ProjectDir)\algorithm\openvdbwrapper;$(ProjectDir)\algorithm\freeglut;$(ProjectDir)\algorithm\freeImage;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\algorithm\embree\lib;$(ProjectDir)\algorithm\hdf5\lib\x64;D:\boost_1_57_0\lib64-msvc-12.0;$(ProjectDir)\algorithm\openvdbwrapper;$(ProjectDir)\algorithm\freeglut;$(ProjectDir)\algorithm\freeImage;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>hdf5_hl.lib;hdf5.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>embree.lib; hdf5_hl.lib;hdf5.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,13 +136,14 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(ProjectDir)\algorithm\hdf5\lib\x64;D:\boost_1_57_0\lib64-msvc-12.0;$(ProjectDir)\algorithm\openvdbwrapper;$(ProjectDir)\algorithm\freeglut;$(ProjectDir)\algorithm\freeImage;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\algorithm\embree\lib;$(ProjectDir)\algorithm\hdf5\lib\x64;D:\boost_1_57_0\lib64-msvc-12.0;$(ProjectDir)\algorithm\openvdbwrapper;$(ProjectDir)\algorithm\freeglut;$(ProjectDir)\algorithm\freeImage;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>hdf5_hl.lib;hdf5.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>embree.lib;hdf5_hl.lib;hdf5.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="algorithm\camera\Camera.cpp" />
+    <ClCompile Include="algorithm\embree\EmbreeWrapper.cpp" />
     <ClCompile Include="algorithm\FreeImage\CFreeImage.cpp" />
     <ClCompile Include="algorithm\global_data_holder.cpp" />
     <ClCompile Include="algorithm\kdtree\AABB.cpp" />
@@ -151,7 +152,6 @@
     <ClCompile Include="algorithm\mpu\ConvolutionPyramid.cpp" />
     <ClCompile Include="algorithm\mpu\Convolution_Helper.cpp" />
     <ClCompile Include="algorithm\mpu\VolumeData.cpp" />
-    <ClCompile Include="algorithm\openvdbwrapper\OpenVDBWrapper.cpp" />
     <ClCompile Include="algorithm\Renderable\AbstractMesh.cpp" />
     <ClCompile Include="algorithm\Renderable\bmesh.cpp" />
     <ClCompile Include="algorithm\Renderable\BoneMesh.cpp" />
@@ -233,6 +233,7 @@
   <ItemGroup>
     <ClInclude Include="algorithm\camera\Camera.h" />
     <ClInclude Include="algorithm\camera\fmath.h" />
+    <ClInclude Include="algorithm\embree\EmbreeWrapper.h" />
     <ClInclude Include="algorithm\FreeImage\CFreeImage.h" />
     <ClInclude Include="algorithm\FreeImage\FreeImage.h" />
     <ClInclude Include="algorithm\global_data_holder.h" />
@@ -254,7 +255,6 @@
     <ClInclude Include="algorithm\mpu\ConvolutionPyramid.h" />
     <ClInclude Include="algorithm\mpu\Convolution_Helper.h" />
     <ClInclude Include="algorithm\mpu\VolumeData.h" />
-    <ClInclude Include="algorithm\openvdbwrapper\OpenVDBWrapper.h" />
     <ClInclude Include="algorithm\Renderable\AbstractMesh.h" />
     <ClInclude Include="algorithm\Renderable\bmesh.h" />
     <ClInclude Include="algorithm\Renderable\bmesh_private.h" />

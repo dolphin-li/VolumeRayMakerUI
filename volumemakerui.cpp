@@ -191,25 +191,11 @@ void VolumeMakerUI::on_pbMesh2Volume_clicked()
 {
 	try
 	{
-		g_dataholder.mesh2volume(g_dataholder.m_volume, g_dataholder.m_mesh);
+		g_dataholder.mesh2volume(g_dataholder.m_volume, g_dataholder.m_mesh, g_dataholder.m_pointCloud);
 		ui.widget->setDenseVolume(g_dataholder.m_volume, false);
 		ui.widget->setViewType(MpuViewer::ViewTypeDenseVolume);
 		ui.widget->setViewClipBox(g_dataholder.m_volume.getBound());
 		updateUiByParam();
-	}
-	catch (std::exception e)
-	{
-		std::cout << e.what() << std::endl;
-	}
-}
-
-void VolumeMakerUI::on_pbBinarizeVolume_clicked()
-{
-	try
-	{
-		g_dataholder.binarizeVolume(g_dataholder.m_volume);
-		ui.widget->setDenseVolume(g_dataholder.m_volume, false);
-		ui.widget->setViewType(MpuViewer::ViewTypeDenseVolume);
 	}
 	catch (std::exception e)
 	{

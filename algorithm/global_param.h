@@ -2,9 +2,9 @@
 
 namespace global_param
 {
-	const static float VOLUME_BAND_HALF_WIDTH = 5.f;
-	const static float VOLUME_MESH_ADAPTIVE_THRE = 0.2f;
 	const static int MESH_2_VOLUME_PADDING = 2;
+	const static int VIRTUAL_RAY_NUM_W = 400;
+	const static int VIRTUAL_RAY_NUM_H = 400;
 
 	// volume resolution
 	extern int volume_res[3];
@@ -23,6 +23,5 @@ namespace global_param
 	extern float elevation_step;	// only used if random_view_num <= 0
 
 	// mesh2vol related
-	extern float mesh2vol_isoValue;
 	extern int mesh2vol_occupy_1; // each occupied voxel is set to 1 and others set to 0
 }

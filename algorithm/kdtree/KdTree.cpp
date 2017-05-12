@@ -28,7 +28,7 @@ namespace ldp
 		//An iterative split by SAH build for KD-trees
 		void SAHKDTree::build(std::vector<Primitive> &_objects)
 		{
-			return fastBuild(_objects);
+			//return fastBuild(_objects);
 			//memory
 			m_nodes.clear();
 			m_leafData.clear();

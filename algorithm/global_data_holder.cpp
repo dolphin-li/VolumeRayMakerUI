@@ -1,9 +1,9 @@
 #include "global_data_holder.h"
-#include "OpenVDBWrapper.h"
 #include <fstream>
 #include "hdf5.h"
 #include "hdf5_hl.h"
-//#include "RigidEstimation.h"
+#include "embree\EmbreeWrapper.h"
+
 GlobalDataHolder g_dataholder;
 
 static void convert_float_to_bool(int n, const float* A, std::vector<char>& B)
@@ -62,7 +62,6 @@ void GlobalDataHolder::init()
 	global_param::elevation_min = 0;
 	global_param::elevation_max = 40;
 	global_param::elevation_step = 45;
-	global_param::mesh2vol_isoValue = 0.6f;
 	global_param::mesh2vol_occupy_1 = true;
 	m_hdf5dims.resize(5, 0);
 	m_volume.resize(global_param::volume_res[0], global_param::volume_res[1], global_param::volume_res[2]);
@@ -109,7 +108,7 @@ void GlobalDataHolder::generateViews()
 	}
 }
 
-void GlobalDataHolder::applyView(const ObjMesh& A, ObjMesh& B, int viewId)
+void GlobalDataHolder::applyView(const ObjMesh& A, ObjMesh& B, int viewId)const
 {
 	ldp::Float2 az_ele = m_view_az_els.at(viewId);
 	Camera cam;
@@ -128,13 +127,74 @@ void GlobalDataHolder::applyView(const ObjMesh& A, ObjMesh& B, int viewId)
 
 void GlobalDataHolder::volume2mesh(ObjMesh& mesh, const mpu::VolumeData& volume)
 {
-	FloatGrid::Ptr grid;
-	OpenVDBWrapper::fromDenseVolume(grid, volume);
-	OpenVDBWrapper::toObjMesh(grid, mesh, global_param::VOLUME_MESH_ADAPTIVE_THRE);
 }
 
-void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume, const ObjMesh& mesh)
+struct VirtualCamera
 {
+	ldp::Float3 center;
+	ldp::Float3 dir;
+	ldp::Float3 ray_step_x;
+	ldp::Float3 ray_step_y;
+	int width = 0;
+	int height = 0;
+};
+static void generate_by_truncated_bounding_box(std::vector<VirtualCamera>& vcams, kdtree::AABB box, int w, int h)
+{
+	const ldp::Float3 boxCenter = box.getCenter();
+	const ldp::Float3 boxExt = box.getExtents();
+	const ldp::Float3 boxBd[2] = { box.min, box.max };
+
+	vcams.clear();
+
+	// eight corner points
+	for (int i = 0; i < 8; i++)
+	{
+		const int ix = i & 0x01;
+		const int iy = ((i & 0x02) >> 1);
+		const int iz = ((i & 0x04) >> 2);
+		VirtualCamera cam;
+		cam.center = ldp::Float3(boxBd[ix][0], boxBd[iy][1], boxBd[iz][2]);
+		vcams.push_back(cam);
+	} // end for i, 8 corner points
+
+	  // six face points
+	for (int i = 0; i < 6; i++)
+	{
+		const float dir = float((i % 2) * 2 - 1);
+		const int axis = i / 2;
+		VirtualCamera cam;
+		cam.center = boxCenter;
+		cam.center[axis] += boxExt[axis] * 0.5f * dir;
+		vcams.push_back(cam);
+	} // end for i, six face points
+
+	  // generate ray configerations
+	for (auto& cam : vcams)
+	{
+		cam.dir = (boxCenter - cam.center).normalize();
+		cam.width = w;
+		cam.height = h;
+		cam.ray_step_x = ldp::Float3(1, 0, 0).cross(cam.dir);
+		if (ldp::Float3(0, 1, 0).cross(cam.dir).length() > cam.ray_step_x.length())
+			cam.ray_step_x = ldp::Float3(0, 1, 0).cross(cam.dir);
+		if (ldp::Float3(0, 0, 1).cross(cam.dir).length() > cam.ray_step_x.length())
+			cam.ray_step_x = ldp::Float3(0, 0, 1).cross(cam.dir);
+		cam.ray_step_x.normalizeLocal();
+		cam.ray_step_y = cam.dir.cross(cam.ray_step_x);
+		if (cam.ray_step_y.length() == 0.f)
+		{
+			printf("error: invalid virtual camera generation!");
+			throw std::exception();
+		}
+		cam.ray_step_y.normalizeLocal();
+		cam.ray_step_x /= (float)cam.width;
+		cam.ray_step_y /= (float)cam.height;
+	} // end for cam
+}
+
+void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume, const ObjMesh& mesh, ObjMesh& pointClound)
+{
+	// calculate volume bounding box 
 	ldp::Int3 res(global_param::volume_res[0], global_param::volume_res[1], global_param::volume_res[2]);
 	ldp::Int3 res_p = res - 2 * global_param::MESH_2_VOLUME_PADDING;
 	kdtree::AABB box(mesh.boundingBox[0], mesh.boundingBox[1]);
@@ -148,33 +208,63 @@ void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume, const ObjMesh& mesh)
 	}
 	volume.setBound(box);
 
-	FloatGrid::Ptr grid;
-	OpenVDBWrapper::fromObjMesh(grid, mesh, volume.getVoxelSize(), global_param::mesh2vol_isoValue);
-	OpenVDBWrapper::toDenseVolume(grid, volume);
-}
+	// generate 14 virtual cameras 
+	std::vector<VirtualCamera> vcams;
+	generate_by_truncated_bounding_box(vcams, box, 
+		global_param::VIRTUAL_RAY_NUM_W, global_param::VIRTUAL_RAY_NUM_H);
 
-void GlobalDataHolder::binarizeVolume(mpu::VolumeData& volume)
-{
-	ldp::Int3 res = volume.getResolution();
-	int n = res[0] * res[1] * res[2];
-	for (int i = 0; i < n; i++)
+	// generate mesh kdtree 
+	EmbreeWrapper wrapper;
+	wrapper.create(mesh);
+
+	// perform ray tracing
+	pointClound.clear();
+	for (int iCam = 0; iCam < (int)vcams.size(); iCam++)
 	{
-		if (volume.data()[i] <= 0)
-			volume.data()[i] = -0.5;
-		else
-			volume.data()[i] = 0.5;
-	}
+		const auto& cam = vcams[iCam];
+		const int xb = -cam.width / 2;
+		const int xe = cam.width / 2;
+		const int yb = -cam.height / 2;
+		const int ye = cam.height / 2;
+		for (int y = yb; y < ye; y++)
+		{
+			const int thread_id = 0;
+			const ldp::Float3 ray_pos_y = cam.center + cam.ray_step_y * y;
+			for (int x = xb; x < xe; x++)
+			{
+				EmbreeWrapper::Ray ray;
+				ray.org = ray_pos_y + cam.ray_step_x*x;
+				ray.dir = cam.dir;
+				auto result = wrapper.intersect(ray);
+				if (result.tri_id >= 0 && result.Ng.length())
+				{
+					if (result.Ng.dot(0.f - ray.dir) < 0.f)
+						result.Ng = 0.f - result.Ng;
+					result.Ng.normalizeLocal();
+					pointClound.vertex_normal_list.push_back(result.Ng);
+					pointClound.vertex_list.push_back(ray.org + result.tfar * ray.dir);
+				}
+			} // end for x
+		} // end for y
+	} // end for iCam
+
+	// put point clound into volume voxels
+	volume.fill(0.f);
+	for (size_t iPoint = 0; iPoint < pointClound.vertex_list.size(); iPoint++)
+	{
+		const ldp::Float3& v = pointClound.vertex_list[iPoint];
+		const ldp::Float3 idxf = volume.getVolumeIndexFromWorldPos(v);
+		const ldp::Int3 idx(std::lroundf(idxf[0]), std::lroundf(idxf[1]), std::lroundf(idxf[2]));
+		volume.data_XYZ(idx)[0] = 1.f;
+	} // end for iPoint
 }
 
 void GlobalDataHolder::showParams()
 {
-	m_timeStamp.Stamp("VOLUME_BAND_HALF_WIDTH: %f", global_param::VOLUME_BAND_HALF_WIDTH);
-	m_timeStamp.Stamp("VOLUME_MESH_ADAPTIVE_THRE: %f", global_param::VOLUME_MESH_ADAPTIVE_THRE);
 	m_timeStamp.Stamp("MESH_2_VOLUME_PADDING: %d", global_param::MESH_2_VOLUME_PADDING);
 	m_timeStamp.Stamp("volume_res: %d %d %d", global_param::volume_res[0], global_param::volume_res[1],
 		global_param::volume_res[2]);
 	m_timeStamp.Stamp("hdf5numMeshes: %d", global_param::hdf5numMeshes);
-	m_timeStamp.Stamp("mesh2vol_isoValue: %f", global_param::mesh2vol_isoValue);
 	m_timeStamp.Stamp("mesh2vol_occupy_1: %d", global_param::mesh2vol_occupy_1);
 	m_timeStamp.Stamp("random_view_num: %d", global_param::random_view_num);
 	m_timeStamp.Stamp("azimuth: [%f:%f:%f]", global_param::azimuth_min, 
@@ -201,10 +291,7 @@ void GlobalDataHolder::batch_config(const char* filename)
 			continue;
 
 		std::string lineLabel = getLineLabel(lineBuffer);
-		if (lineLabel == "config_method")
-			m_configMethod = (ConfigMethod)atoi(lineBuffer.c_str());
-		// params
-		else if (lineLabel == "param_volRes")
+		if (lineLabel == "param_volRes")
 			sscanf(lineBuffer.c_str(), "%d %d %d", &global_param::volume_res[0],
 			&global_param::volume_res[1], &global_param::volume_res[2]);
 		else if (lineLabel == "hdf5numMeshes")
@@ -224,8 +311,6 @@ void GlobalDataHolder::batch_config(const char* filename)
 		else if (lineLabel == "elevation_step")
 			global_param::elevation_step = atof(lineBuffer.c_str());
 		// mesh2vol related
-		else if (lineLabel == "mesh2vol_isoValue")
-			global_param::mesh2vol_isoValue = atof(lineBuffer.c_str());
 		else if (lineLabel == "mesh2vol_occupy_1")
 			global_param::mesh2vol_occupy_1 = atoi(lineBuffer.c_str());
 		else if (lineLabel == "mesh2vol_inputDir")
@@ -234,33 +319,13 @@ void GlobalDataHolder::batch_config(const char* filename)
 			m_mesh2vol_outputDir = lineBuffer;
 		else if (lineLabel == "mesh2vol_meshExt")
 			m_mesh2vol_meshExt = lineBuffer;
-		else if (lineLabel == "convertHdf5_from_0_1_to_1_n1_dir")
-			m_convertHdf5_from_0_1_to_1_n1_dir = lineBuffer;
-		else if (lineLabel == "convertHdf5_from_float_to_bit1_indir")
-			m_convertHdf5_from_float_to_bit1_indir = lineBuffer;
-		else if (lineLabel == "convertHdf5_from_float_to_bit1_outdir")
-			m_convertHdf5_from_float_to_bit1_outdir = lineBuffer;
 	}
 	stm.close();
 	m_timeStamp.Stamp("config file parsed: ");
 	showParams();
 	m_timeStamp.flushLog();
 
-	// different batch config
-	switch (m_configMethod)
-	{
-	case GlobalDataHolder::CONFIG_BATCH_MESH2VOL:
-		batch_mesh2vol();
-		break;
-	case GlobalDataHolder::CONFIG_BATCH_CONVERT_HDF5_FROM_0_1_TO_1_n1:
-		batch_convertHdf5_from_0_1_to_1_n1();
-		break;
-	case GlobalDataHolder::CONFIG_BATCH_CONVERT_HDF5_FROM_FLOAT_TO_BIT1:
-		batch_convertHdf5_from_float_to_bit1();
-		break;
-	default:
-		break;
-	}
+	batch_mesh2vol();
 }
 
 inline std::string get_modelnet40_label(std::string meshName)
@@ -396,10 +461,10 @@ void GlobalDataHolder::batch_mesh2vol()
 	#pragma omp parallel for
 		for (int iView = 0; iView < nViewPerMesh; iView++)
 		{
-			ObjMesh mesh;
-			VolumeData volume;
+			ObjMesh mesh, pointCloud;
+			mpu::VolumeData volume;
 			applyView(meshNoR, mesh, iView);
-			mesh2volume(volume, mesh);
+			mesh2volume(volume, mesh, pointCloud);
 
 			// convert to occupy volume
 			if (global_param::mesh2vol_occupy_1)
@@ -466,143 +531,6 @@ void GlobalDataHolder::batch_mesh2vol()
 			m_timeStamp.flushLog();
 		}
 	}// end for iMesh
-}
-
-void GlobalDataHolder::batch_convertHdf5_from_0_1_to_1_n1()
-{
-	m_timeStamp.Prefix("mesh2vol");
-	m_timeStamp.Stamp("convert all hdf5 0_1 to 1_n1 in: ", m_convertHdf5_from_0_1_to_1_n1_dir.c_str());
-	m_timeStamp.flushLog();
-
-	// gather all hdf5s
-	std::vector<std::string> hdf5Names;
-	getAllFilesInDir(m_convertHdf5_from_0_1_to_1_n1_dir, hdf5Names, "hdf5");
-	m_timeStamp.Stamp("%d .hdf5 founded", hdf5Names.size());
-	m_timeStamp.flushLog();
-
-	// batch convert
-	for (size_t iName = 0; iName < hdf5Names.size(); iName++)
-	{
-		try
-		{
-			loadHdf5(hdf5Names[iName].c_str());
-
-			// write hdf5
-			hid_t file_id = H5Fcreate(hdf5Names[iName].c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-			if (file_id < 0)
-				throw std::exception("H5Fcreate failed!");
-			m_timeStamp.Stamp("hdf5 created: %s", hdf5Names[iName].c_str());
-			m_timeStamp.flushLog();
-			herr_t err = 0;
-			hsize_t dims[5] = { m_hdf5dims[0], m_hdf5dims[1], m_hdf5dims[2], m_hdf5dims[3], m_hdf5dims[4] };
-			int cnt = m_hdf5dims[0] * m_hdf5dims[1] * m_hdf5dims[2] * m_hdf5dims[3] * m_hdf5dims[4];
-			for (int i = 0; i < cnt; i++)
-			{
-				float val = m_hdf5volume[i];
-				if (val >= 0)
-					m_hdf5volume[i] = 1;
-				else
-					m_hdf5volume[i] = -1;
-			}
-			err = H5LTmake_dataset_float(file_id, "volume", 5, dims, m_hdf5volume.data());
-			if (err)
-				throw std::exception("H5LTmake_dataset_float volume failed!");
-			hsize_t dims2[2] = { m_hdf5dims[0], 1 };
-			err = H5LTmake_dataset_float(file_id, "label", 2, dims2, m_hdf5label.data());
-			if (err)
-				throw std::exception("H5LTmake_dataset_float  label failed!");
-			err = H5Fclose(file_id);
-			if (err)
-				throw std::exception("H5Fclose failed!");
-			m_timeStamp.Stamp("hdf5 closed");
-			m_timeStamp.flushLog();
-		}
-		catch (std::exception e)
-		{
-			std::cout << e.what() << std::endl;
-		}
-	}// end for iName
-}
-
-void GlobalDataHolder::batch_convertHdf5_from_float_to_bit1()
-{
-	m_timeStamp.Prefix("convert");
-	m_timeStamp.Stamp("convert all hdf5 float to bit1 in: ", m_convertHdf5_from_float_to_bit1_indir.c_str());
-	m_timeStamp.flushLog();
-
-	// gather all hdf5s
-	std::vector<std::string> hdf5Names;
-	getAllFilesInDir(m_convertHdf5_from_float_to_bit1_indir, hdf5Names, "hdf5");
-	m_timeStamp.Stamp("%d .hdf5 founded", hdf5Names.size());
-	m_timeStamp.flushLog();
-
-	if (!directoryExists(m_convertHdf5_from_float_to_bit1_outdir))
-	{
-		mkdir(m_convertHdf5_from_float_to_bit1_outdir);
-		m_timeStamp.Stamp("mkdir: ", m_convertHdf5_from_float_to_bit1_outdir.c_str());
-		m_timeStamp.flushLog();
-	}
-
-	// batch convert
-	std::vector<float> tmpFltVolume;
-	std::vector<float> tmpFltLabel;
-	std::vector<char> tmpVolume;
-	std::vector<float> tmpLabel;
-	for (size_t iName = 0; iName < hdf5Names.size(); iName++)
-	{
-		try
-		{
-			loadHdf5(hdf5Names[iName].c_str());
-			std::string path, name, ext;
-			ldp::fileparts(hdf5Names[iName], path, name, ext);
-			std::string outname = fullfile(m_convertHdf5_from_float_to_bit1_outdir, name + ext + "_bool");
-
-			// merge with previous
-			const int voxelPer = m_hdf5dims[1] * m_hdf5dims[2] * m_hdf5dims[3] * m_hdf5dims[4];
-			int prev_cnt = tmpFltVolume.size() / voxelPer;
-			int cur_cnt = m_hdf5dims[0];
-			int nxt_cnt = (prev_cnt + cur_cnt) % 8;
-			tmpFltVolume.insert(tmpFltVolume.end(), m_hdf5volume.begin(), 
-				m_hdf5volume.begin() + (cur_cnt-nxt_cnt)*voxelPer);
-			tmpFltLabel.insert(tmpFltLabel.end(), m_hdf5label.begin(),
-				m_hdf5label.begin() + cur_cnt - nxt_cnt);
-			convert_float_to_bool(tmpFltVolume, tmpVolume);
-			tmpLabel = tmpFltLabel;
-			tmpFltVolume.assign(m_hdf5volume.begin() + (cur_cnt - nxt_cnt)*voxelPer, m_hdf5volume.end());
-			tmpFltLabel.assign(m_hdf5label.begin() + cur_cnt - nxt_cnt, m_hdf5label.end());
-
-			int wt_cnt = prev_cnt + cur_cnt - nxt_cnt;
-			int wt_cnt_char = wt_cnt / 8;
-			if (wt_cnt_char*8 != tmpLabel.size())
-				throw std::exception("error, char cnt not proper");
-
-			// write hdf5
-			hid_t file_id = H5Fcreate(outname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-			if (file_id < 0)
-				throw std::exception("H5Fcreate failed!");
-			m_timeStamp.Stamp("hdf5 created: %s, cnt = %d, charCnt=%d", outname.c_str(), wt_cnt, wt_cnt_char);
-			m_timeStamp.flushLog();
-			herr_t err = 0;
-			hsize_t dims[5] = { wt_cnt_char, m_hdf5dims[1], m_hdf5dims[2], m_hdf5dims[3], m_hdf5dims[4] };
-			
-			err = H5LTmake_dataset_char(file_id, "volume", 5, dims, tmpVolume.data());
-			if (err)
-				throw std::exception("H5LTmake_dataset_char volume failed!");
-			hsize_t dims2[2] = { tmpLabel.size(), 1 };
-			err = H5LTmake_dataset_float(file_id, "label", 2, dims2, tmpLabel.data());
-			if (err)
-				throw std::exception("H5LTmake_dataset_float  label failed!");
-			err = H5Fclose(file_id);
-			if (err)
-				throw std::exception("H5Fclose failed!");
-			m_timeStamp.Stamp("hdf5 closed");
-			m_timeStamp.flushLog();
-		}
-		catch (std::exception e)
-		{
-			std::cout << e.what() << std::endl;
-		}
-	}// end for iName
 }
 
 void GlobalDataHolder::loadHdf5(const char* filename)

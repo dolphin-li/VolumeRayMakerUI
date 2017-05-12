@@ -28,7 +28,6 @@ public:
 
 	void on_pbVolume2Mesh_clicked();
 	void on_pbMesh2Volume_clicked();
-	void on_pbBinarizeVolume_clicked();
 
 	void on_pbGenViews_clicked();
 	void on_sbViewId_valueChanged(int v);
