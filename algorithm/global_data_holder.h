@@ -11,7 +11,8 @@ public:
 	void generateViews();
 	void applyView(const ObjMesh& A, ObjMesh& B, int viewId)const;
 	static void volume2mesh(ObjMesh& mesh, const mpu::VolumeData& volume);
-	static void mesh2volume(mpu::VolumeData& volume, const ObjMesh& mesh, ObjMesh& pointClound);
+	static void mesh2volume(mpu::VolumeData& volume, mpu::VolumeData volumeNormals[3], 
+		const ObjMesh& mesh, ObjMesh& pointClound);
 	void showParams();
 	void loadHdf5(const char* filename);
 	void loadHdf5bool(const char* filename);

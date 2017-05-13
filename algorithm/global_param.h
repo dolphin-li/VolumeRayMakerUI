@@ -23,5 +23,6 @@ namespace global_param
 	extern float elevation_step;	// only used if random_view_num <= 0
 
 	// mesh2vol related
-	extern int mesh2vol_occupy_1; // each occupied voxel is set to 1 and others set to 0
+	extern int mesh2vol_export_bool_occupy; // each occupied voxel is set to 1 and others set to 0
+	extern int mesh2vol_export_float_normal; // each occupied voxel is set to 1 and others set to 0
 }

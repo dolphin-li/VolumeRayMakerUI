@@ -13,5 +13,6 @@ namespace global_param
 	float elevation_max;
 	float elevation_step;
 	float mesh2vol_isoValue;
-	int mesh2vol_occupy_1;
+	int mesh2vol_export_bool_occupy;
+	int mesh2vol_export_float_normal;
 }

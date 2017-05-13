@@ -141,8 +141,6 @@ void ObjMesh::render(int showType, int frameIndex)
 
 	if(vertex_list.size() == 0)
 		return;
-	if(face_list.size() == 0)
-		return;
 	if(face_normal_list.size() == 0 || vertex_normal_list.size() == 0)
 		updateNormals();
 	if (vertex_is_selected.size() != vertex_list.size())
@@ -150,16 +148,13 @@ void ObjMesh::render(int showType, int frameIndex)
 	if (vertex_color_list.size() != vertex_list.size())
 		vertex_color_list.resize(vertex_list.size(), 0.8);
 
-
-	const Float3* vertices = &vertex_list[0];
-	const Float3* vnormals = &vertex_normal_list[0];
-	const Float3* fnormals = &face_normal_list[0];
-	const obj_face *faces = &face_list[0];
-	const obj_material *mats = 0;
+	const Float3* vertices = vertex_list.data();
+	const Float3* vnormals = vertex_normal_list.data();
+	const Float3* fnormals = face_normal_list.data();
+	const obj_face *faces = face_list.data();
+	const obj_material *mats = material_list.data();
 	int nfaces = face_list.size();
 	int nverts = vertex_list.size();
-	if(material_list.size()>0)
-		mats = &material_list[0];
 
 	if (showType & SW_LIGHTING)
 	{

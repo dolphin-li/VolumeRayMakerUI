@@ -26,7 +26,7 @@ void VolumeMakerUI::on_actionOpen_triggered()
 			openMesh(name);
 		else if (name.endsWith(".dvol") || name.endsWith(".hfdvol"))
 			openVolume(name);
-		else if (name.endsWith(".hdf5") || name.endsWith(".hdf5_bool"))
+		else if (name.endsWith(".hdf5_normal") || name.endsWith(".hdf5_bool"))
 			openHdf5(name);
 		else
 			printf("non supported file format!");
@@ -69,10 +69,15 @@ void VolumeMakerUI::openVolume(QString name)
 
 void VolumeMakerUI::openHdf5(QString name)
 {
-	if (name.endsWith(".hdf5"))
+	if (name.endsWith(".hdf5_normal"))
 		g_dataholder.loadHdf5(name.toStdString().c_str());
 	else if (name.endsWith(".hdf5_bool"))
 		g_dataholder.loadHdf5bool(name.toStdString().c_str());
+	else
+	{
+		printf("non_supported hdf5 format!");
+		return;
+	}
 	global_param::volume_res[0] = g_dataholder.m_hdf5dims[2];
 	global_param::volume_res[1] = g_dataholder.m_hdf5dims[3];
 	global_param::volume_res[2] = g_dataholder.m_hdf5dims[4];
@@ -191,7 +196,8 @@ void VolumeMakerUI::on_pbMesh2Volume_clicked()
 {
 	try
 	{
-		g_dataholder.mesh2volume(g_dataholder.m_volume, g_dataholder.m_mesh, g_dataholder.m_pointCloud);
+		g_dataholder.mesh2volume(g_dataholder.m_volume, g_dataholder.m_volumeNormal, 
+			g_dataholder.m_mesh, g_dataholder.m_pointCloud);
 		ui.widget->setDenseVolume(g_dataholder.m_volume, false);
 		ui.widget->setViewType(MpuViewer::ViewTypeDenseVolume);
 		ui.widget->setViewClipBox(g_dataholder.m_volume.getBound());

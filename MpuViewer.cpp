@@ -162,16 +162,26 @@ void MpuViewer::setViewClipBox(kdtree::AABB box)
 
 void MpuViewer::renderMesh()
 {
-	if (m_pMesh == nullptr)
-		return;
-
 	int typeNoV = m_meshShowType;
 	if (typeNoV & Renderable::SW_V)
 		typeNoV -= Renderable::SW_V;
 
 	glColor3f(1, 1, 1);
+	if(m_pMesh)
+		m_pMesh->render(typeNoV);
 
-	m_pMesh->render(typeNoV);
+	if (m_meshShowType & Renderable::SW_V)
+	{
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glBegin(GL_POINTS);
+		for (size_t i = 0; i < g_dataholder.m_pointCloud.vertex_list.size(); i++)
+		{
+			glNormal3fv(g_dataholder.m_pointCloud.vertex_normal_list[i].ptr());
+			glVertex3fv(g_dataholder.m_pointCloud.vertex_list[i].ptr());
+		}
+		glEnd();
+		glPopAttrib();
+	} // end V
 }
 
 mpu::VolumeData* MpuViewer::getCurrentDenseVolume()
