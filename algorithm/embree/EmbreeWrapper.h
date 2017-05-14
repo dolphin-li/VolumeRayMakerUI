@@ -26,7 +26,7 @@ public:
 public:
 	EmbreeWrapper();
 	~EmbreeWrapper();
-	void create(const ObjMesh& mesh);
+	void create(int nVerts, const ldp::Float3* verts, int nTriangles, const ldp::Int3* tris);
 	void release();
 	Result intersect(Ray ray);
 private:

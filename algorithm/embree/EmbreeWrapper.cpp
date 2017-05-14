@@ -2,9 +2,6 @@
 
 #include "embree\include\embree2\rtcore.h"
 #include "embree\include\embree2\rtcore_ray.h"
-
-#include "Renderable\ObjMesh.h"
-
 #include <xmmintrin.h>
 #include <pmmintrin.h>
 
@@ -34,7 +31,7 @@ EmbreeWrapper::~EmbreeWrapper()
 	release();
 }
 
-void EmbreeWrapper::create(const ObjMesh& mesh)
+void EmbreeWrapper::create(int nVerts, const ldp::Float3* verts, int nTriangles, const ldp::Int3* tris)
 {
 	release();
 	m_holder->device = rtcNewDevice(NULL);
@@ -42,28 +39,23 @@ void EmbreeWrapper::create(const ObjMesh& mesh)
 	m_holder->scene = rtcDeviceNewScene(m_holder->device, RTC_SCENE_STATIC, RTC_INTERSECT1);
 	EMBREE_CHECK();
 
-	std::vector<ldp::Int3> tris;
-	for (const auto& f : mesh.face_list)
-		for (int k = 0; k < f.vertex_count - 2; k++)
-			tris.push_back(ldp::Int3(f.vertex_index[0], f.vertex_index[k + 1], f.vertex_index[k + 2]));
-	auto geomID = rtcNewTriangleMesh(m_holder->scene, RTC_GEOMETRY_STATIC,
-		(int)tris.size(), (int)mesh.vertex_list.size());
+	auto geomID = rtcNewTriangleMesh(m_holder->scene, RTC_GEOMETRY_STATIC, nTriangles, nVerts);
 	EMBREE_CHECK();
 
 	struct Vertex { float x, y, z, a; };
 	struct Triangle { int v0, v1, v2; };
 	Vertex* vPtr = (Vertex*)rtcMapBuffer(m_holder->scene, geomID, RTC_VERTEX_BUFFER);
-	for (int i = 0; i < (int)mesh.vertex_list.size(); i++)
+	for (int i = 0; i < nVerts; i++)
 	{
-		vPtr[i].x = mesh.vertex_list[i][0];
-		vPtr[i].y = mesh.vertex_list[i][1];
-		vPtr[i].z = mesh.vertex_list[i][2];
+		vPtr[i].x = verts[i][0];
+		vPtr[i].y = verts[i][1];
+		vPtr[i].z = verts[i][2];
 		vPtr[i].a = 0.f;
 	}
 	rtcUnmapBuffer(m_holder->scene, geomID, RTC_VERTEX_BUFFER);
 	EMBREE_CHECK();
 	Triangle* triPtr = (Triangle*)rtcMapBuffer(m_holder->scene, geomID, RTC_INDEX_BUFFER);
-	for (int i = 0; i < (int)tris.size(); i++)
+	for (int i = 0; i < nTriangles; i++)
 	{
 		triPtr[i].v0 = tris[i][0];
 		triPtr[i].v1 = tris[i][1];

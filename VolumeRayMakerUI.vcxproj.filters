@@ -133,6 +133,9 @@
     <ClCompile Include="algorithm\embree\EmbreeWrapper.cpp">
       <Filter>algorithm\Embree</Filter>
     </ClCompile>
+    <ClCompile Include="algorithm\embree\RayMeshSampling.cpp">
+      <Filter>algorithm\Embree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="volumemakerui.ui">
@@ -252,6 +255,9 @@
       <Filter>algorithm</Filter>
     </ClInclude>
     <ClInclude Include="algorithm\embree\EmbreeWrapper.h">
+      <Filter>algorithm\Embree</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\embree\RayMeshSampling.h">
       <Filter>algorithm\Embree</Filter>
     </ClInclude>
   </ItemGroup>

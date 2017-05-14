@@ -2,7 +2,7 @@
 #include <fstream>
 #include "hdf5.h"
 #include "hdf5_hl.h"
-#include "embree\EmbreeWrapper.h"
+#include "embree\RayMeshSampling.h"
 
 GlobalDataHolder g_dataholder;
 
@@ -130,90 +130,6 @@ void GlobalDataHolder::volume2mesh(ObjMesh& mesh, const mpu::VolumeData& volume)
 {
 }
 
-struct VirtualCamera
-{
-	ldp::Float3 center;
-	ldp::Float3 dir;
-	ldp::Float3 ray_step_x;
-	ldp::Float3 ray_step_y;
-	int width = 0;
-	int height = 0;
-	int wb = 0;
-	int we = 0;
-	int hb = 0; 
-	int he = 0;
-};
-static void generate_by_truncated_bounding_box(std::vector<VirtualCamera>& vcams, kdtree::AABB box, int w, int h)
-{
-	const ldp::Float3 boxCenter = box.getCenter();
-	const ldp::Float3 boxExt = box.getExtents();
-	const ldp::Float3 boxBd[2] = { box.min, box.max };
-
-	vcams.clear();
-
-	// eight corner points
-	for (int i = 0; i < 8; i++)
-	{
-		const int ix = i & 0x01;
-		const int iy = ((i & 0x02) >> 1);
-		const int iz = ((i & 0x04) >> 2);
-		VirtualCamera cam;
-		cam.center = ldp::Float3(boxBd[ix][0], boxBd[iy][1], boxBd[iz][2]);
-		vcams.push_back(cam);
-	} // end for i, 8 corner points
-
-	  // six face points
-	for (int i = 0; i < 6; i++)
-	{
-		continue;
-		const float dir = float((i % 2) * 2 - 1);
-		const int axis = i / 2;
-		VirtualCamera cam;
-		cam.center = boxCenter;
-		cam.center[axis] += boxExt[axis] * 0.5f * dir;
-		vcams.push_back(cam);
-	} // end for i, six face points
-
-	  // generate ray configerations
-	for (size_t iCam = 0; iCam < vcams.size(); iCam++)
-	{
-		auto& cam = vcams[iCam];
-		cam.dir = (boxCenter - cam.center).normalize();
-		cam.ray_step_x = ldp::Float3(1, 0, 0).cross(cam.dir);
-		if (ldp::Float3(0, 1, 0).cross(cam.dir).length() > cam.ray_step_x.length())
-			cam.ray_step_x = ldp::Float3(0, 1, 0).cross(cam.dir);
-		if (ldp::Float3(0, 0, 1).cross(cam.dir).length() > cam.ray_step_x.length())
-			cam.ray_step_x = ldp::Float3(0, 0, 1).cross(cam.dir);
-		cam.ray_step_x.normalizeLocal();
-		cam.ray_step_y = cam.dir.cross(cam.ray_step_x);
-		if (cam.ray_step_y.length() == 0.f)
-		{
-			printf("error: invalid virtual camera generation!");
-			throw std::exception();
-		}
-		cam.ray_step_y.normalizeLocal();
-
-		cam.width = w;
-		cam.height = h;
-		if (iCam >= 8)
-		{
-			cam.width = std::lroundf(cam.width * sqrt(3));
-			cam.height = std::lroundf(cam.height * sqrt(3));
-		}
-		cam.wb = -cam.width / 2;
-		cam.we = -cam.wb;
-		cam.hb = -cam.height / 2;
-		cam.he = -cam.hb;
-		cam.ray_step_x /= (float)(cam.width);
-		cam.ray_step_y /= (float)(cam.height);
-		if (iCam >= 8)
-		{
-			cam.ray_step_x *= sqrt(3);
-			cam.ray_step_y *= sqrt(3);
-		}
-	} // end for cam
-}
-
 void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume,
 	mpu::VolumeData volumeNormals[3],
 	const ObjMesh& mesh, ObjMesh& pointClound)
@@ -237,41 +153,18 @@ void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume,
 		volumeNormals[k].setBound(box);
 	}
 
-	// generate 14 virtual cameras 
-	std::vector<VirtualCamera> vcams;
-	generate_by_truncated_bounding_box(vcams, box, 
-		global_param::VIRTUAL_RAY_NUM_W, global_param::VIRTUAL_RAY_NUM_H);
-
 	// generate mesh kdtree 
-	EmbreeWrapper wrapper;
-	wrapper.create(mesh);
-
-	// perform ray tracing
-	pointClound.clear();
-	for (int iCam = 0; iCam < (int)vcams.size(); iCam++)
-	{
-		const auto& cam = vcams[iCam];
-		for (int y = cam.hb; y < cam.he; y++)
-		{
-			const int thread_id = 0;
-			const ldp::Float3 ray_pos_y = cam.center + cam.ray_step_y * y;
-			for (int x = cam.wb; x < cam.we; x++)
-			{
-				EmbreeWrapper::Ray ray;
-				ray.org = ray_pos_y + cam.ray_step_x*x;
-				ray.dir = cam.dir;
-				auto result = wrapper.intersect(ray);
-				if (result.tri_id >= 0 && result.Ng.length())
-				{
-					if (result.Ng.dot(0.f - ray.dir) < 0.f)
-						result.Ng = 0.f - result.Ng;
-					result.Ng.normalizeLocal();
-					pointClound.vertex_normal_list.push_back(result.Ng);
-					pointClound.vertex_list.push_back(ray.org + result.tfar * ray.dir);
-				}
-			} // end for x
-		} // end for y
-	} // end for iCam
+	RayMeshSampling sampler;
+	ldp::Float3 sbox[2] = { box.min, box.max };
+	sampler.init(sbox);
+	std::vector<ldp::Int3> tris;
+	for (const auto& f : mesh.face_list)
+		for (int k = 0; k < f.vertex_count - 2; k++)
+			tris.push_back(ldp::Int3(f.vertex_index[0], f.vertex_index[k+1], f.vertex_index[k+2]));
+	ldp::tic();
+	sampler.sample(mesh.vertex_list.size(), mesh.vertex_list.data(),
+		tris.size(), tris.data(), pointClound.vertex_list, pointClound.vertex_normal_list);
+	ldp::toc();
 	pointClound.updateBoundingBox();
 
 	// put point clound into volume voxels
@@ -288,7 +181,7 @@ void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume,
 		for (int k = 0; k < 3; k++)
 			volumeNormals[k].data_XYZ(idx)[0] = vn[k];
 	} // end for iPoint
-	pointClound.clear();
+	//pointClound.clear();
 	for (int z = 0; z < volume.getResolution()[2]; z++)
 	for (int y = 0; y < volume.getResolution()[1]; y++)
 	for (int x = 0; x < volume.getResolution()[0]; x++)
@@ -305,8 +198,8 @@ void GlobalDataHolder::mesh2volume(mpu::VolumeData& volume,
 		for (int k = 0; k < 3; k++)
 			volumeNormals[k].data_XYZ(idx)[0] = vn[k];
 		ldp::Float3 v = volume.getWorldPosFromVolumeIndex(idx);
-		pointClound.vertex_list.push_back(v);
-		pointClound.vertex_normal_list.push_back(vn);
+		//pointClound.vertex_list.push_back(v);
+		//pointClound.vertex_normal_list.push_back(vn);
 	}
 }
 

@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClCompile Include="algorithm\camera\Camera.cpp" />
     <ClCompile Include="algorithm\embree\EmbreeWrapper.cpp" />
+    <ClCompile Include="algorithm\embree\RayMeshSampling.cpp" />
     <ClCompile Include="algorithm\FreeImage\CFreeImage.cpp" />
     <ClCompile Include="algorithm\global_data_holder.cpp" />
     <ClCompile Include="algorithm\kdtree\AABB.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="algorithm\camera\Camera.h" />
     <ClInclude Include="algorithm\camera\fmath.h" />
     <ClInclude Include="algorithm\embree\EmbreeWrapper.h" />
+    <ClInclude Include="algorithm\embree\RayMeshSampling.h" />
     <ClInclude Include="algorithm\FreeImage\CFreeImage.h" />
     <ClInclude Include="algorithm\FreeImage\FreeImage.h" />
     <ClInclude Include="algorithm\global_data_holder.h" />
