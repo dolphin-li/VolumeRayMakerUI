@@ -27,10 +27,9 @@ void RayMeshSampling::init(const ldp::Float3 box[2], int sampleWidth, int sample
 		m_vcams.push_back(cam);
 	} // end for i, 8 corner points
 
-	  // six face points
+	// six face points
 	for (int i = 0; i < 6; i++)
 	{
-		continue;
 		const float dir = float((i % 2) * 2 - 1);
 		const int axis = i / 2;
 		VirtualCamera cam;
@@ -39,7 +38,7 @@ void RayMeshSampling::init(const ldp::Float3 box[2], int sampleWidth, int sample
 		m_vcams.push_back(cam);
 	} // end for i, six face points
 
-	  // generate ray configerations
+	// generate ray configerations
 	for (size_t iCam = 0; iCam < m_vcams.size(); iCam++)
 	{
 		auto& cam = m_vcams[iCam];
@@ -60,7 +59,7 @@ void RayMeshSampling::init(const ldp::Float3 box[2], int sampleWidth, int sample
 
 		cam.width = sampleWidth;
 		cam.height = sampleHeight;
-		if (iCam >= 8)
+		if (iCam < 8)
 		{
 			cam.width = std::lroundf(cam.width * sqrt(3));
 			cam.height = std::lroundf(cam.height * sqrt(3));
@@ -71,7 +70,7 @@ void RayMeshSampling::init(const ldp::Float3 box[2], int sampleWidth, int sample
 		cam.he = -cam.hb;
 		cam.ray_step_x /= (float)(cam.width);
 		cam.ray_step_y /= (float)(cam.height);
-		if (iCam >= 8)
+		if (iCam < 8)
 		{
 			cam.ray_step_x *= sqrt(3);
 			cam.ray_step_y *= sqrt(3);
